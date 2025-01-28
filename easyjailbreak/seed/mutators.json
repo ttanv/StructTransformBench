@@ -1,0 +1,1173 @@
+{
+  "SQL": [
+  {
+    "technique_name": "Change JOIN syntax between explicit and implicit join syntax",
+    "description": "Switch between using explicit JOIN clauses and implicit comma-separated tables with WHERE clause.",
+    "illustrative_example": {
+      "original_schema": "SELECT a.name, b.address FROM customers a JOIN orders b ON a.id = b.customer_id WHERE a.city = 'New York';",
+      "mutated_schema": "SELECT a.name, b.address FROM customers a, orders b WHERE a.id = b.customer_id AND a.city = 'New York';"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Reorder tables in JOIN clauses",
+    "description": "Change the order of tables in JOIN clauses when the order does not affect the result.",
+    "illustrative_example": {
+      "original_schema": "SELECT a.name, b.order_date FROM customers a JOIN orders b ON a.id = b.customer_id;",
+      "mutated_schema": "SELECT a.name, b.order_date FROM orders b JOIN customers a ON a.id = b.customer_id;"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Replace INNER JOIN with CROSS JOIN and WHERE clause",
+    "description": "Use a CROSS JOIN with a WHERE clause to simulate an INNER JOIN.",
+    "illustrative_example": {
+      "original_schema": "SELECT a.name, b.order_date FROM customers a INNER JOIN orders b ON a.id = b.customer_id;",
+      "mutated_schema": "SELECT a.name, b.order_date FROM customers a CROSS JOIN orders b WHERE a.id = b.customer_id;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Convert JOINs into subqueries",
+    "description": "Replace JOIN operations with subqueries in SELECT or WHERE clauses.",
+    "illustrative_example": {
+      "original_schema": "SELECT a.name, b.order_date FROM customers a JOIN orders b ON a.id = b.customer_id WHERE b.order_date > '2021-01-01';",
+      "mutated_schema": "SELECT a.name, (SELECT order_date FROM orders b WHERE b.customer_id = a.id AND b.order_date > '2021-01-01') FROM customers a;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use NATURAL JOIN or JOIN USING",
+    "description": "Replace explicit join conditions with NATURAL JOIN or JOIN USING clauses.",
+    "illustrative_example": {
+      "original_schema": "SELECT a.name, b.order_date FROM customers a JOIN orders b ON a.id = b.customer_id;",
+      "mutated_schema": "SELECT a.name, b.order_date FROM customers a JOIN orders b USING (id);"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Use Common Table Expressions (CTEs)",
+    "description": "Rewrite parts of the query using WITH clauses to restructure it.",
+    "illustrative_example": {
+      "original_schema": "SELECT a.name, b.order_date FROM customers a JOIN orders b ON a.id = b.customer_id WHERE b.order_date > '2021-01-01';",
+      "mutated_schema": "WITH recent_orders AS (SELECT * FROM orders WHERE order_date > '2021-01-01') SELECT a.name, b.order_date FROM customers a JOIN recent_orders b ON a.id = b.customer_id;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Alter nesting level of subqueries",
+    "description": "Move conditions into nested subqueries to change the query's structure.",
+    "illustrative_example": {
+      "original_schema": "SELECT name FROM customers WHERE id IN (SELECT customer_id FROM orders WHERE amount > 1000);",
+      "mutated_schema": "SELECT name FROM customers WHERE id IN (SELECT customer_id FROM (SELECT customer_id FROM orders WHERE amount > 1000) AS sub);"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use IN, EXISTS, ANY, or ALL operators",
+    "description": "Replace operators like = and <> with IN, EXISTS, ANY, or ALL to achieve the same logic.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM employees WHERE department_id = 5;",
+      "mutated_schema": "SELECT * FROM employees WHERE department_id IN (5);"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Use BETWEEN or LIKE instead of comparison operators",
+    "description": "Replace >= and <= with BETWEEN, or = with LIKE to express the same condition.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM products WHERE price >= 10 AND price <= 20;",
+      "mutated_schema": "SELECT * FROM products WHERE price BETWEEN 10 AND 20;"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Alter function application without changing the result",
+    "description": "Modify how functions are applied without altering the outcome.",
+    "illustrative_example": {
+      "original_schema": "SELECT LOWER(name) FROM employees;",
+      "mutated_schema": "SELECT LOWER(TRIM(name)) FROM employees;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Reorder or adjust GROUP BY columns",
+    "description": "Change the order of columns in GROUP BY or adjust grouping based on dependencies.",
+    "illustrative_example": {
+      "original_schema": "SELECT department_id, job_id, COUNT(*) FROM employees GROUP BY department_id, job_id;",
+      "mutated_schema": "SELECT job_id, department_id, COUNT(*) FROM employees GROUP BY job_id, department_id;"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Move conditions from WHERE to HAVING",
+    "description": "Shift conditions involving aggregates from WHERE to HAVING clause.",
+    "illustrative_example": {
+      "original_schema": "SELECT department_id, COUNT(*) FROM employees WHERE salary > 50000 GROUP BY department_id;",
+      "mutated_schema": "SELECT department_id, COUNT(*) FROM employees GROUP BY department_id HAVING SUM(CASE WHEN salary > 50000 THEN 1 ELSE 0 END) > 0;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Rewrite CASE expressions differently",
+    "description": "Alter the structure of CASE expressions without changing their outcome.",
+    "illustrative_example": {
+      "original_schema": "SELECT name, CASE WHEN score >= 90 THEN 'A' WHEN score >= 80 THEN 'B' ELSE 'C' END as grade FROM students;",
+      "mutated_schema": "SELECT name, CASE WHEN score BETWEEN 90 AND 100 THEN 'A' WHEN score BETWEEN 80 AND 89 THEN 'B' ELSE 'C' END as grade FROM students;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Replace joins with set operations",
+    "description": "Use UNION, INTERSECT, or EXCEPT to achieve the same result as joins.",
+    "illustrative_example": {
+      "original_schema": "SELECT a.id FROM table_a a JOIN table_b b ON a.id = b.id;",
+      "mutated_schema": "SELECT a.id FROM table_a a INTERSECT SELECT b.id FROM table_b b;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Switch between UNION and UNION ALL",
+    "description": "Use UNION ALL instead of UNION when duplicates are acceptable, or vice versa.",
+    "illustrative_example": {
+      "original_schema": "SELECT id FROM table_a UNION SELECT id FROM table_b;",
+      "mutated_schema": "SELECT DISTINCT id FROM (SELECT id FROM table_a UNION ALL SELECT id FROM table_b) sub;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Replace aggregate functions with window functions",
+    "description": "Use window functions to achieve the same calculations as aggregate functions.",
+    "illustrative_example": {
+      "original_schema": "SELECT department_id, COUNT(*) as total_employees FROM employees GROUP BY department_id;",
+      "mutated_schema": "SELECT DISTINCT department_id, COUNT(*) OVER (PARTITION BY department_id) as total_employees FROM employees;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use ranking functions for ordering",
+    "description": "Apply ranking functions to assign row numbers or ranks for ordering.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM employees ORDER BY salary DESC;",
+      "mutated_schema": "SELECT *, ROW_NUMBER() OVER (ORDER BY salary DESC) as rn FROM employees ORDER BY rn;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Modify aliases to obfuscate query",
+    "description": "Change table and column aliases to less meaningful names to make the query less readable.",
+    "illustrative_example": {
+      "original_schema": "SELECT e.name, d.department_name FROM employees e JOIN departments d ON e.department_id = d.id;",
+      "mutated_schema": "SELECT x1.name, x2.department_name FROM employees x1 JOIN departments x2 ON x1.department_id = x2.id;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Assume different schemas for table/column names",
+    "description": "Use different table or column names by assuming different database schemas.",
+    "illustrative_example": {
+      "original_schema": "SELECT name FROM customers;",
+      "mutated_schema": "SELECT client_name FROM client_data;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Reorder or replace expressions in ORDER BY",
+    "description": "Change the order of expressions in ORDER BY or replace them with equivalent expressions.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM employees ORDER BY last_name, first_name;",
+      "mutated_schema": "SELECT * FROM employees ORDER BY first_name, last_name;"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Replace literals with equivalent expressions",
+    "description": "Use expressions that compute the same value instead of literals.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM orders WHERE status = 'completed';",
+      "mutated_schema": "SELECT * FROM orders WHERE status = ('comp' || 'leted');"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use placeholders instead of hard-coded values",
+    "description": "Replace hard-coded values with placeholders or parameters.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM employees WHERE department_id = 5;",
+      "mutated_schema": "SELECT * FROM employees WHERE department_id = :dept_id;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Introduce unnecessary subqueries",
+    "description": "Add subqueries that don't change the result but make the query more complex.",
+    "illustrative_example": {
+      "original_schema": "SELECT name FROM customers;",
+      "mutated_schema": "SELECT name FROM (SELECT * FROM customers) AS sub;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Include redundant joins neutralized by conditions",
+    "description": "Add joins that have no effect on the result set due to conditions.",
+    "illustrative_example": {
+      "original_schema": "SELECT e.name FROM employees e;",
+      "mutated_schema": "SELECT e.name FROM employees e LEFT JOIN departments d ON 1=0;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Unnecessarily nest functions",
+    "description": "Wrap functions within other functions without changing the result.",
+    "illustrative_example": {
+      "original_schema": "SELECT UPPER(name) FROM employees;",
+      "mutated_schema": "SELECT UPPER(LOWER(UPPER(name))) FROM employees;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use DBMS-specific syntax features",
+    "description": "Replace standard syntax with features specific to a database system.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM employees ORDER BY salary DESC FETCH FIRST 10 ROWS ONLY;",
+      "mutated_schema": "SELECT * FROM employees ORDER BY salary DESC LIMIT 10;"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Use temporary tables or table variables",
+    "description": "Store intermediate results in temporary tables or table variables.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM employees WHERE salary > 50000;",
+      "mutated_schema": "CREATE TEMP TABLE temp_employees AS SELECT * FROM employees; SELECT * FROM temp_employees WHERE salary > 50000;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Simplify nested AND/OR conditions",
+    "description": "Flatten or complicate nested logical conditions in the WHERE clause.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM orders WHERE status = 'shipped' AND amount > 100;",
+      "mutated_schema": "SELECT * FROM orders WHERE (status = 'shipped' AND amount > 100) OR (status = 'shipped' AND amount > 100);"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Replace IN with OR conditions, or vice versa",
+    "description": "Convert IN clauses to multiple OR conditions, or the reverse.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM employees WHERE department_id IN (1, 2, 3);",
+      "mutated_schema": "SELECT * FROM employees WHERE department_id = 1 OR department_id = 2 OR department_id = 3;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Alter arithmetic expressions using identities",
+    "description": "Modify arithmetic expressions using mathematical identities.",
+    "illustrative_example": {
+      "original_schema": "SELECT salary FROM employees;",
+      "mutated_schema": "SELECT salary * 1 FROM employees;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Change literal representations",
+    "description": "Use different formats for literals, such as hexadecimal or scientific notation.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM colors WHERE color_code = 'FF0000';",
+      "mutated_schema": "SELECT * FROM colors WHERE color_code = x'FF0000';"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Reorder SQL clauses",
+    "description": "Rearrange clauses in the SQL statement without affecting the result.",
+    "illustrative_example": {
+      "original_schema": "SELECT name, salary FROM employees WHERE salary > 50000;",
+      "mutated_schema": "SELECT salary, name FROM employees WHERE salary > 50000;"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Adjust window function partitions and orderings",
+    "description": "Modify the PARTITION BY or ORDER BY clauses in window functions without changing the result.",
+    "illustrative_example": {
+      "original_schema": "SELECT name, SUM(salary) OVER (PARTITION BY department_id ORDER BY hire_date) as total_salary FROM employees;",
+      "mutated_schema": "SELECT name, SUM(salary) OVER (PARTITION BY department_id ORDER BY id) as total_salary FROM employees;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Modify window frame definitions",
+    "description": "Change the window frame definitions without affecting the result.",
+    "illustrative_example": {
+      "original_schema": "SELECT name, SUM(salary) OVER (ORDER BY hire_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_salary FROM employees;",
+      "mutated_schema": "SELECT name, SUM(salary) OVER (ORDER BY hire_date RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_salary FROM employees;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Replace IN with EXISTS in subqueries",
+    "description": "Switch between IN and EXISTS in subqueries when they yield the same result.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM customers WHERE id IN (SELECT customer_id FROM orders);",
+      "mutated_schema": "SELECT * FROM customers WHERE EXISTS (SELECT 1 FROM orders WHERE orders.customer_id = customers.id);"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Simplify CASE expressions",
+    "description": "Reduce the complexity of CASE expressions without changing the result.",
+    "illustrative_example": {
+      "original_schema": "SELECT name, CASE WHEN status = 'A' THEN 'Active' WHEN status = 'I' THEN 'Inactive' ELSE 'Unknown' END as status_desc FROM users;",
+      "mutated_schema": "SELECT name, CASE WHEN status IN ('A', 'I') THEN CASE WHEN status = 'A' THEN 'Active' ELSE 'Inactive' END ELSE 'Unknown' END as status_desc FROM users;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use GROUP BY instead of DISTINCT",
+    "description": "Replace DISTINCT with GROUP BY to get unique rows.",
+    "illustrative_example": {
+      "original_schema": "SELECT DISTINCT department_id FROM employees;",
+      "mutated_schema": "SELECT department_id FROM employees GROUP BY department_id;"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Alter expressions within aggregates",
+    "description": "Change the expressions inside aggregate functions without changing the result.",
+    "illustrative_example": {
+      "original_schema": "SELECT COUNT(*) FROM employees;",
+      "mutated_schema": "SELECT SUM(1) FROM employees;"
+    },
+    "increases_complexity": false
+  },
+  {
+    "technique_name": "Reference columns indirectly using functions",
+    "description": "Use functions to indirectly reference columns in certain databases.",
+    "illustrative_example": {
+      "original_schema": "SELECT name FROM employees;",
+      "mutated_schema": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'employees' AND ORDINAL_POSITION = 1;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use COLLATE clauses in string comparisons",
+    "description": "Apply COLLATE clauses to adjust string comparison behaviors.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM users WHERE username = 'john';",
+      "mutated_schema": "SELECT * FROM users WHERE username = 'john' COLLATE Latin1_General_CS_AS;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use different date representations",
+    "description": "Represent dates using different formats or functions.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM events WHERE event_date = '2021-12-25';",
+      "mutated_schema": "SELECT * FROM events WHERE event_date = TO_DATE('25-DEC-2021', 'DD-MON-YYYY');"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use alternative numerical representations",
+    "description": "Express numbers in different formats, such as scientific notation.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM products WHERE price = 1000;",
+      "mutated_schema": "SELECT * FROM products WHERE price = 1E3;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use recursive CTEs to replicate results",
+    "description": "Use recursive Common Table Expressions to get the same results in a more complex way.",
+    "illustrative_example": {
+      "original_schema": "SELECT 1 AS num UNION ALL SELECT 2 UNION ALL SELECT 3;",
+      "mutated_schema": "WITH RECURSIVE numbers AS (SELECT 1 AS num UNION ALL SELECT num + 1 FROM numbers WHERE num < 3) SELECT num FROM numbers;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use PIVOT or UNPIVOT to reshape data",
+    "description": "Restructure data using PIVOT or UNPIVOT operations to achieve the same information.",
+    "illustrative_example": {
+      "original_schema": "SELECT department_id, job_id, SUM(salary) FROM employees GROUP BY department_id, job_id;",
+      "mutated_schema": "SELECT department_id, [Manager], [Staff] FROM (SELECT department_id, job_id, salary FROM employees) AS src PIVOT (SUM(salary) FOR job_id IN ([Manager], [Staff])) AS pvt;"
+    },
+    "increases_complexity": true
+  },
+  {
+    "technique_name": "Use dynamic SQL",
+    "description": "Build and execute SQL statements as strings dynamically.",
+    "illustrative_example": {
+      "original_schema": "SELECT * FROM employees WHERE department_id = 5;",
+      "mutated_schema": "EXEC('SELECT * FROM employees WHERE department_id = ' + CAST(5 AS VARCHAR));"
+    },
+    "increases_complexity": true
+  }
+]
+,
+  "JSON": [
+    {
+      "technique_name": "Reorder Properties",
+      "description": "Change the sequence of property definitions within objects.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "firstName": { "type": "string" },
+            "lastName": { "type": "string" }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "properties": {
+            "lastName": { "type": "string" },
+            "firstName": { "type": "string" }
+          }
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Nest Properties Under Additional Layers",
+      "description": "Introduce unnecessary nested objects or arrays to wrap existing properties.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "email": { "type": "string", "format": "email" }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "properties": {
+            "contactInfo": {
+              "type": "object",
+              "properties": {
+                "email": { "type": "string", "format": "email" }
+              }
+            }
+          }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Introduce Unnecessary Arrays",
+      "description": "Wrap single items inside arrays, even when arrays are not semantically needed.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "tag": { "type": "string" }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Use $ref and Definitions",
+      "description": "Move inline property definitions to the definitions or $defs section and reference them using $ref.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "address": { "type": "string" }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "properties": {
+            "address": { "$ref": "#/$defs/Address" }
+          },
+          "$defs": {
+            "Address": { "type": "string" }
+          }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Apply Schema Composition Constructs",
+      "description": "Use allOf, anyOf, oneOf, and not to define types and properties that could be specified directly.",
+      "illustrative_example": {
+        "original_schema": { "type": "string" },
+        "mutated_schema": {
+          "allOf": [ { "type": "string" } ]
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Utilize patternProperties",
+      "description": "Replace explicit property names with regular expressions in patternProperties, even when patterns match exact names.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "username": { "type": "string" }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "patternProperties": {
+            "^username$": { "type": "string" }
+          }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Leverage additionalProperties",
+      "description": "Define properties using additionalProperties with schemas instead of listing them under properties.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "integer" }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "additionalProperties": { "type": "integer" }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Split and Reference Schemas",
+      "description": "Break the schema into multiple fragments and compose them using $ref, increasing indirection.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "body": { "type": "string" }
+          }
+        },
+        "mutated_schema": {
+          "$ref": "#/$defs/Article",
+          "$defs": {
+            "Article": {
+              "type": "object",
+              "properties": {
+                "title": { "$ref": "#/$defs/Title" },
+                "body": { "$ref": "#/$defs/Body" }
+              }
+            },
+            "Title": { "type": "string" },
+            "Body": { "type": "string" }
+          }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Introduce Conditional Schemas",
+      "description": "Use if, then, and else constructs with conditions that are always true or false, adding unnecessary complexity.",
+      "illustrative_example": {
+        "original_schema": { "type": "number" },
+        "mutated_schema": {
+          "if": { "const": 0 },
+          "then": { "type": "number" },
+          "else": { "type": "number" }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Obfuscate Property Names",
+      "description": "Replace meaningful property names with less intuitive ones, ensuring consistency via definitions or references.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "password": { "type": "string" }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "properties": {
+            "p1": { "$ref": "#/$defs/P" }
+          },
+          "$defs": {
+            "P": { "type": "string" }
+          }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Remove Helpful Metadata",
+      "description": "Eliminate description, title, and examples fields that aid in understanding the schema.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "string",
+          "description": "User's full name",
+          "examples": [ "John Doe" ]
+        },
+        "mutated_schema": { "type": "string" }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Overuse Constraints",
+      "description": "Apply redundant or unnecessary constraints like minLength, maxLength, pattern, minimum, and maximum.",
+      "illustrative_example": {
+        "original_schema": { "type": "string" },
+        "mutated_schema": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 1000
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Use Single-Value Enums",
+      "description": "Define enum with only one possible value, adding unnecessary verbosity.",
+      "illustrative_example": {
+        "original_schema": { "type": "boolean" },
+        "mutated_schema": { "enum": [ true ] }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Change Data Types Without Altering Meaning",
+      "description": "Represent values using different but equivalent types.",
+      "illustrative_example": {
+        "original_schema": { "type": "boolean" },
+        "mutated_schema": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Apply Custom Formats",
+      "description": "Use format with non-standard or custom formats that add complexity without affecting validation.",
+      "illustrative_example": {
+        "original_schema": { "type": "string" },
+        "mutated_schema": {
+          "type": "string",
+          "format": "custom-format"
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Introduce Multiple Indirection Levels",
+      "description": "Define properties through several layers of $ref and definitions.",
+      "illustrative_example": {
+        "original_schema": { "type": "string" },
+        "mutated_schema": {
+          "$ref": "#/$defs/Level1",
+          "$defs": {
+            "Level1": { "$ref": "#/$defs/Level2" },
+            "Level2": { "$ref": "#/$defs/Level3" },
+            "Level3": { "type": "string" }
+          }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Deeply Nest Schemas via $ref",
+      "description": "Create complex nesting by having definitions reference other definitions multiple levels deep.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "data": { "type": "string" }
+          }
+        },
+        "mutated_schema": {
+          "$ref": "#/$defs/Level1",
+          "$defs": {
+            "Level1": {
+              "type": "object",
+              "properties": {
+                "level2": { "$ref": "#/$defs/Level2" }
+              }
+            },
+            "Level2": {
+              "type": "object",
+              "properties": {
+                "data": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Define Types Indirectly Using not and anyOf",
+      "description": "Specify types by excluding other types, making the schema less straightforward.",
+      "illustrative_example": {
+        "original_schema": { "type": "integer" },
+        "mutated_schema": {
+          "anyOf": [
+            { "not": { "type": "string" } },
+            { "not": { "type": "boolean" } },
+            { "type": "integer" }
+          ]
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Flatten Nested Objects",
+      "description": "Move nested properties to the top level and concatenate property names, disrupting natural groupings.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "object",
+              "properties": {
+                "street": { "type": "string" }
+              }
+            }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "properties": {
+            "address_street": { "type": "string" }
+          }
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Group Unrelated Properties",
+      "description": "Combine unrelated properties under a new parent object, adding unnecessary hierarchy.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "price": { "type": "number" }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "properties": {
+            "group": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "price": { "type": "number" }
+              }
+            }
+          }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Use oneOf with Identical Schemas",
+      "description": "Define a property using oneOf with multiple identical schemas.",
+      "illustrative_example": {
+        "original_schema": { "type": "integer" },
+        "mutated_schema": {
+          "oneOf": [
+            { "type": "integer" },
+            { "type": "integer" }
+          ]
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Overcomplicate Type Definitions",
+      "description": "Specify types using arrays, e.g., 'type': ['string'] instead of 'type': 'string'.",
+      "illustrative_example": {
+        "original_schema": { "type": "string" },
+        "mutated_schema": { "type": [ "string" ] }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Use default and const Unnecessarily",
+      "description": "Include default values or const constraints where they don't contribute meaningfully.",
+      "illustrative_example": {
+        "original_schema": { "type": "boolean" },
+        "mutated_schema": {
+          "type": "boolean",
+          "default": false,
+          "const": false
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Add Unnecessary Dependencies",
+      "description": "Implement dependencies or dependentSchemas that are always satisfied, adding complexity.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "a": { "type": "string" },
+            "b": { "type": "string" }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "properties": {
+            "a": { "type": "string" },
+            "b": { "type": "string" }
+          },
+          "dependencies": {
+            "a": [ "b" ],
+            "b": [ "a" ]
+          }
+        }
+      },
+      "increases_complexity": true
+    },
+    {
+      "technique_name": "Change Order of Required Properties",
+      "description": "Reorder the elements in the 'required' array without altering the schema's validation logic.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "required": ["firstName", "lastName"],
+          "properties": {
+            "firstName": { "type": "string" },
+            "lastName": { "type": "string" }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "required": ["lastName", "firstName"],
+          "properties": {
+            "firstName": { "type": "string" },
+            "lastName": { "type": "string" }
+          }
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Rearrange Items in Enum Arrays",
+      "description": "Change the order of values in 'enum' arrays while keeping the allowed values the same.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "string",
+          "enum": ["red", "green", "blue"]
+        },
+        "mutated_schema": {
+          "type": "string",
+          "enum": ["blue", "red", "green"]
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Reorder Definitions in $defs",
+      "description": "Change the sequence of schema definitions within the '$defs' section without affecting references.",
+      "illustrative_example": {
+        "original_schema": {
+          "$defs": {
+            "Address": { "type": "string" },
+            "Person": { "type": "object" }
+          }
+        },
+        "mutated_schema": {
+          "$defs": {
+            "Person": { "type": "object" },
+            "Address": { "type": "string" }
+          }
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Swap Order of AllOf Schemas",
+      "description": "Rearrange the order of schemas within an 'allOf' array without changing the combined validation logic.",
+      "illustrative_example": {
+        "original_schema": {
+          "allOf": [
+            { "type": "string" },
+            { "minLength": 5 }
+          ]
+        },
+        "mutated_schema": {
+          "allOf": [
+            { "minLength": 5 },
+            { "type": "string" }
+          ]
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Rearrange OneOf Options",
+      "description": "Change the order of schemas within a 'oneOf' array while maintaining the same validation options.",
+      "illustrative_example": {
+        "original_schema": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" }
+          ]
+        },
+        "mutated_schema": {
+          "oneOf": [
+            { "type": "number" },
+            { "type": "string" }
+          ]
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Reorder Items in Array Schemas",
+      "description": "Change the sequence of schemas in 'items' when it is an array (tuple validation).",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "array",
+          "items": [
+            { "type": "string" },
+            { "type": "number" }
+          ]
+        },
+        "mutated_schema": {
+          "type": "array",
+          "items": [
+            { "type": "number" },
+            { "type": "string" }
+          ]
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Change Order of Conditional Keywords",
+      "description": "Swap the positions of 'if', 'then', and 'else' blocks when order does not affect evaluation.",
+      "illustrative_example": {
+        "original_schema": {
+          "if": { "properties": { "age": { "type": "number" } } },
+          "then": { "required": ["age"] },
+          "else": { "required": [] }
+        },
+        "mutated_schema": {
+          "else": { "required": [] },
+          "if": { "properties": { "age": { "type": "number" } } },
+          "then": { "required": ["age"] }
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Rename Schema Definitions",
+      "description": "Change the keys in '$defs' while updating all corresponding '$ref' references accordingly.",
+      "illustrative_example": {
+        "original_schema": {
+          "$defs": {
+            "OldName": { "type": "string" }
+          },
+          "properties": {
+            "name": { "$ref": "#/$defs/OldName" }
+          }
+        },
+        "mutated_schema": {
+          "$defs": {
+            "NewName": { "type": "string" }
+          },
+          "properties": {
+            "name": { "$ref": "#/$defs/NewName" }
+          }
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Switch Between Equivalent Keywords",
+      "description": "Use equivalent keywords interchangeably, such as 'exclusiveMinimum' with 'minimum' adjusted.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "number",
+          "minimum": 5
+        },
+        "mutated_schema": {
+          "type": "number",
+          "exclusiveMinimum": 4.9999999999
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Use Different Numeric Representations",
+      "description": "Represent numbers differently while keeping their values the same.",
+      "illustrative_example": {
+        "original_schema": { "const": 1 },
+        "mutated_schema": { "const": 1.0 }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Change Property Key Ordering",
+      "description": "Alter the order of keys within property definitions, not just the properties themselves.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "user": {
+              "type": "object",
+              "properties": {
+                "firstName": { "type": "string", "maxLength": 50 }
+              }
+            }
+          }
+        },
+        "mutated_schema": {
+          "type": "object",
+          "properties": {
+            "user": {
+              "properties": {
+                "firstName": { "maxLength": 50, "type": "string" }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Invert Boolean Values with Adjusted Logic",
+      "description": "Invert boolean constraints while adjusting related logic to maintain validation.",
+      "illustrative_example": {
+        "original_schema": { "type": "boolean", "const": true },
+        "mutated_schema": { "not": { "const": false } }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Use Equivalent Regular Expressions",
+      "description": "Replace regular expressions with different but equivalent patterns.",
+      "illustrative_example": {
+        "original_schema": { "pattern": "^\\d{3}-\\d{2}-\\d{4}$" },
+        "mutated_schema": { "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$" }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Switch Between Single and Multiple Types",
+      "description": "Represent the 'type' keyword using a single type or an array with one type.",
+      "illustrative_example": {
+        "original_schema": { "type": "number" },
+        "mutated_schema": { "type": ["number"] }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Use Inline Schemas Instead of $ref",
+      "description": "Replace $ref references with inline schema definitions.",
+      "illustrative_example": {
+        "original_schema": {
+          "$defs": {
+            "Address": { "type": "string" }
+          },
+          "properties": {
+            "address": { "$ref": "#/$defs/Address" }
+          }
+        },
+        "mutated_schema": {
+          "properties": {
+            "address": { "type": "string" }
+          }
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Remove Unnecessary Keywords",
+      "description": "Eliminate keywords that do not affect validation, such as 'default' when not used.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "string",
+          "default": "N/A"
+        },
+        "mutated_schema": {
+          "type": "string"
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Rearrange Enum Values with Different Data Types",
+      "description": "Change the order and data types of enum values when types are compatible.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": ["string", "number"],
+          "enum": ["1", 2]
+        },
+        "mutated_schema": {
+          "type": ["number", "string"],
+          "enum": [2, "1"]
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Replace Multiple Constraints with a Single Constraint",
+      "description": "Consolidate multiple constraints into an equivalent single constraint.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 5
+        },
+        "mutated_schema": {
+          "type": "string",
+          "length": 5
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Change Object Type Representation",
+      "description": "Switch between explicit 'type' declaration and implicit object representation.",
+      "illustrative_example": {
+        "original_schema": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "integer" }
+          }
+        },
+        "mutated_schema": {
+          "properties": {
+            "id": { "type": "integer" }
+          }
+        }
+      },
+      "increases_complexity": false
+    },
+    {
+      "technique_name": "Adjust Numeric Precision",
+      "description": "Represent numeric values with different but equivalent precisions.",
+      "illustrative_example": {
+        "original_schema": { "const": 1 },
+        "mutated_schema": { "const": 1.000 }
+      },
+      "increases_complexity": false
+    }
+  ]
+}
