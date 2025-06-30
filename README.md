@@ -208,7 +208,7 @@ export DEEPSEEK_PLATFORM_API_KEY="your_deepseek_api_key"
 3. Execute the benchmark with:
 
 ```bash
-python examples/runStructBench.py
+python examples/run_StructuredAttack.py
 ``` 
 
 ### Key Configuration Options
