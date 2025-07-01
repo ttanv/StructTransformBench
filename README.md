@@ -231,7 +231,7 @@ export OPENROUTER_API_KEY="sk-your-key-here"
 export DEEPSEEK_PLATFORM_API_KEY="sk-your-deepseek-key"
 
 # 3. Run the benchmark
-python examples/runStructBench.py
+python examples/run_StructuredAttack.py
 ```
 
 Results will be saved in nested directories under paths.save_path following this structure:
